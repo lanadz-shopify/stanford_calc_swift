@@ -11,42 +11,63 @@ import UIKit
 class ViewController: UIViewController {
 
     var inTheMiddleOfTyping = false
+    var pointPresent = false
     
-    @IBOutlet weak var display: UILabel!
+    @IBOutlet private weak var display: UILabel!
 
+    private var displayValue: Double {
+        get {
+            return Double(display.text!)!
+        }
+        set{
+            display.text = String(newValue)
+        }
+    }
     
-    @IBAction func touchDigit(sender: UIButton) {
+    private var calculator = CalculatorModel()
+    
+    var savedOperation: CalculatorModel.PropertyList?
+    
+    @IBAction func saveToMemory() {
+        savedOperation = calculator.program
+    }
+    
+    @IBAction func readFromMemory() {
+        if savedOperation != nil {
+            calculator.program = savedOperation!
+            displayValue = calculator.result
+        }
+    }
+    
+    @IBAction private func touchDigit(sender: UIButton) {
         let digit = sender.currentTitle!
         
         if inTheMiddleOfTyping {
             let currentText = display.text!
-            display.text = currentText + digit
+            if digit == "." {
+                if display.text?.characters.indexOf(".") == nil {
+                    display.text = currentText + digit
+                }
+            } else {
+                display.text = currentText + digit
+            }
         } else {
             display.text = digit
         }
         inTheMiddleOfTyping = true
     }
 
-    @IBAction func performOperation(sender: UIButton) {
-        inTheMiddleOfTyping = false
+    @IBAction private func performOperation(sender: UIButton) {
+        if inTheMiddleOfTyping {
+            calculator.setOperand(displayValue)
+            inTheMiddleOfTyping = false
+        }
         
         if let operation = sender.currentTitle {
-            if operation == "П" {
-                display.text = String(M_PI)
-            }
+           calculator.performOperation(operation)
         }
+        displayValue = calculator.result
     }
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
-    }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
-
 
 }
 
